@@ -3,264 +3,656 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>분실물 추적 탐정</title>
+  <title>분실물 추적 탐정 - Lost Item Finder</title>
+  
+  <!-- FontAwesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+
   <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+      --button-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      --button-hover-gradient: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
+      --accent-glow: rgba(124, 58, 237, 0.35);
+      --card-bg: rgba(255, 255, 255, 0.88);
+      --card-border: rgba(255, 255, 255, 0.6);
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --shadow-lg: 0 20px 40px -15px rgba(0, 0, 0, 0.12), 0 0 20px 0 rgba(99, 102, 241, 0.08);
+      --transition-speed: 0.4s;
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+      font-family: 'Plus Jakarta Sans', 'Noto Sans KR', sans-serif;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body {
-      background-color: #f4f6f9;
+      background: #0f172a;
+      min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
       padding: 20px;
-    }
-
-    .card {
-      background: #ffffff;
-      width: 100%;
-      max-width: 500px;
-      padding: 40px 30px;
-      border-radius: 20px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-      text-align: center;
+      overflow-x: hidden;
       position: relative;
     }
 
-    /* 화면 전환 제어 */
+    .bg-blobs {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.6;
+      animation: floatBlob 18s ease-in-out infinite alternate;
+    }
+
+    .blob-1 {
+      top: -10%;
+      left: -10%;
+      width: 50vw;
+      height: 50vw;
+      background: linear-gradient(135deg, #6366f1, #3b82f6);
+    }
+
+    .blob-2 {
+      bottom: -15%;
+      right: -10%;
+      width: 55vw;
+      height: 55vw;
+      background: linear-gradient(135deg, #a855f7, #ec4899);
+      animation-delay: -6s;
+    }
+
+    .blob-3 {
+      top: 40%;
+      left: 30%;
+      width: 35vw;
+      height: 35vw;
+      background: linear-gradient(135deg, #06b6d4, #3b82f6);
+      animation-delay: -12s;
+    }
+
+    @keyframes floatBlob {
+      0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+      50% { transform: translate(60px, 80px) scale(1.1) rotate(180deg); }
+      100% { transform: translate(-40px, 40px) scale(0.95) rotate(360deg); }
+    }
+
+    .app-container {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 520px;
+      perspective: 1000px;
+    }
+
+    .glass-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 44px 36px;
+      box-shadow: var(--shadow-lg);
+      position: relative;
+      overflow: hidden;
+      min-height: 480px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .progress-bar-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 6px;
+      background: rgba(226, 232, 240, 0.6);
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--primary-gradient);
+      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
     .screen {
-      display: none;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(24px) scale(0.98);
+      transition: opacity var(--transition-speed) cubic-bezier(0.16, 1, 0.3, 1),
+                  transform var(--transition-speed) cubic-bezier(0.16, 1, 0.3, 1),
+                  visibility var(--transition-speed);
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      padding: 44px 36px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      pointer-events: none;
     }
+
     .screen.active {
-      display: block;
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0) scale(1);
+      position: relative;
+      pointer-events: auto;
     }
 
-    h1 {
-      font-size: 1.8rem;
-      margin-bottom: 20px;
-      color: #333;
+    .screen.exit-left {
+      opacity: 0;
+      transform: translateY(-20px) scale(0.96);
     }
 
-    p {
-      color: #666;
-      margin-bottom: 20px;
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: rgba(99, 102, 241, 0.1);
+      color: #6366f1;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      width: fit-content;
+      border: 1px solid rgba(99, 102, 241, 0.2);
     }
 
-    /* 입력 폼 스타일 */
-    .input-group {
-      margin-bottom: 25px;
+    h1.title {
+      font-size: 2.1rem;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.25;
+      margin-bottom: 12px;
+      letter-spacing: -0.02em;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 1.02rem;
+      line-height: 1.6;
+      margin-bottom: 32px;
+      font-weight: 400;
+    }
+
+    .input-wrapper {
+      margin-bottom: 28px;
       text-align: left;
     }
 
-    label {
+    .input-label {
       display: block;
-      font-weight: bold;
-      margin-bottom: 8px;
-      color: #444;
-      font-size: 1.05rem;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--text-main);
+      margin-bottom: 10px;
+      letter-spacing: -0.01em;
+      line-height: 1.4;
     }
 
-    input[type="text"] {
+    .input-field {
       width: 100%;
-      padding: 14px;
-      border: 2px solid #e1e5ee;
-      border-radius: 10px;
-      font-size: 1rem;
+      padding: 16px 20px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 2px solid #e2e8f0;
+      border-radius: var(--radius-md);
+      font-size: 1.05rem;
+      color: var(--text-main);
       outline: none;
-      transition: border-color 0.2s;
+      transition: all 0.25s ease;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
     }
 
-    input[type="text"]:focus {
-      border-color: #4a90e2;
+    .input-field:focus {
+      border-color: #7c3aed;
+      background: #ffffff;
+      box-shadow: 0 0 0 4px var(--accent-glow), 0 4px 12px rgba(124, 58, 237, 0.1);
+      transform: translateY(-1px);
     }
 
-    /* 버튼 스타일 */
     .btn {
       width: 100%;
-      padding: 15px;
-      background-color: #4a90e2;
-      color: white;
+      padding: 18px 24px;
+      background: var(--button-gradient);
+      color: #ffffff;
       border: none;
-      border-radius: 10px;
+      border-radius: var(--radius-md);
       font-size: 1.1rem;
-      font-weight: bold;
+      font-weight: 700;
       cursor: pointer;
-      transition: background-color 0.2s;
-      margin-top: 10px;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 10px 20px -5px rgba(124, 58, 237, 0.4);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(rgba(255, 255, 255, 0.2), transparent);
+      opacity: 0;
+      transition: opacity 0.2s ease;
     }
 
     .btn:hover {
-      background-color: #357abd;
+      background: var(--button-hover-gradient);
+      transform: translateY(-2px);
+      box-shadow: 0 14px 28px -5px rgba(124, 58, 237, 0.5);
+    }
+
+    .btn:hover::after {
+      opacity: 1;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+      box-shadow: 0 6px 14px -4px rgba(124, 58, 237, 0.4);
     }
 
     .btn-secondary {
-      background-color: #7f8c8d;
+      background: rgba(241, 245, 249, 0.9);
+      color: #475569;
+      border: 1px solid #cbd5e1;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
     }
 
     .btn-secondary:hover {
-      background-color: #626d6e;
+      background: #e2e8f0;
+      color: #1e293b;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
     }
 
-    /* 로딩 애니메이션 */
-    .spinner {
-      width: 60px;
-      height: 60px;
-      border: 6px solid #f3f3f3;
-      border-top: 6px solid #4a90e2;
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .radar-container {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .radar-circle {
+      position: absolute;
       border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin: 20px auto;
+      border: 2px solid rgba(124, 58, 237, 0.15);
     }
 
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    .radar-circle:nth-child(1) { width: 100%; height: 100%; }
+    .radar-circle:nth-child(2) { width: 70%; height: 70%; }
+    .radar-circle:nth-child(3) { width: 40%; height: 40%; }
+
+    .radar-pulse {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(124, 58, 237, 0.3) 0%, transparent 70%);
+      animation: pulseRadar 2s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+    }
+
+    .radar-icon {
+      font-size: 2.8rem;
+      color: #7c3aed;
+      z-index: 2;
+      animation: floatIcon 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes pulseRadar {
+      0% { transform: scale(0.3); opacity: 1; }
+      100% { transform: scale(1.3); opacity: 0; }
+    }
+
+    @keyframes floatIcon {
+      0% { transform: scale(1) rotate(-5deg); }
+      100% { transform: scale(1.1) rotate(5deg); }
+    }
+
+    .loading-text-container {
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .loading-text {
-      font-size: 1.2rem;
-      font-weight: bold;
-      color: #333;
-      margin-top: 15px;
+      font-size: 1.35rem;
+      font-weight: 800;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      transition: all 0.4s ease;
+      animation: fadeInText 0.5s ease;
     }
 
-    /* 결과 스타일 */
-    .rank-1 {
-      background: #e8f4fe;
-      border: 2px solid #4a90e2;
-      padding: 20px;
-      border-radius: 12px;
-      margin-bottom: 20px;
+    @keyframes fadeInText {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .results-wrapper {
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .rank-1-card {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(168, 85, 247, 0.12) 100%);
+      border: 2px solid rgba(124, 58, 237, 0.3);
+      padding: 24px;
+      border-radius: var(--radius-md);
+      position: relative;
+      box-shadow: 0 8px 24px -6px rgba(124, 58, 237, 0.15);
+      animation: scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .rank-badge-top {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--button-gradient);
+      color: white;
+      font-size: 0.8rem;
+      font-weight: 800;
+      padding: 4px 12px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 10px;
     }
 
     .rank-1-title {
-      font-size: 1.8rem;
-      font-weight: bold;
-      color: #1e5bb8;
-      margin-top: 5px;
+      font-size: 1.55rem;
+      font-weight: 800;
+      color: #1e1b4b;
+      line-height: 1.35;
+      word-break: keep-all;
     }
 
-    .sub-ranks {
-      background: #f8f9fa;
-      padding: 15px;
-      border-radius: 12px;
-      text-align: left;
-      margin-bottom: 20px;
+    .score-tag {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #7c3aed;
+      margin-top: 6px;
+      display: block;
     }
 
-    .sub-rank-item {
-      padding: 8px 0;
-      border-bottom: 1px dashed #ddd;
-      font-size: 1rem;
-      color: #555;
+    .rank-list {
+      background: rgba(255, 255, 255, 0.6);
+      border: 1px solid #e2e8f0;
+      border-radius: var(--radius-md);
+      padding: 12px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
 
-    .sub-rank-item:last-child {
+    .rank-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px dashed #cbd5e1;
+      font-size: 1.02rem;
+      color: #334155;
+    }
+
+    .rank-item:last-child {
       border-bottom: none;
     }
 
-    .button-group {
+    .rank-item-label {
       display: flex;
+      align-items: center;
       gap: 10px;
+      font-weight: 600;
+    }
+
+    .rank-num {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      color: #475569;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    .rank-num.silver { background: #e2e8f0; color: #475569; }
+    .rank-num.bronze { background: #ffedd5; color: #c2410c; }
+
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.92); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @media (max-width: 480px) {
+      .glass-card {
+        padding: 32px 24px;
+        min-height: 440px;
+      }
+      .screen {
+        padding: 32px 24px;
+      }
+      h1.title {
+        font-size: 1.75rem;
+      }
+      .btn-group {
+        flex-direction: column;
+      }
     }
   </style>
 </head>
 <body>
 
-  <div class="card">
-    
-    <!-- 1. 시작 화면 -->
-    <div id="screen-start" class="screen active">
-      <h1>분실물 추적 서비스</h1>
-      <p>단서를 입력하고 잃어버린 물건을 찾아보세요!</p>
-      <button class="btn" onclick="startTracking()">분실물 찾기 🕵️‍♂️</button>
-    </div>
+  <div class="bg-blobs">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
 
-    <!-- 2. Step 1: 분실물 입력 -->
-    <div id="screen-step1" class="screen">
-      <div class="input-group">
-        <label for="input-item">잃어버린 분실물</label>
-        <input type="text" id="input-item" placeholder="예: 지갑, 에어팟, 차키">
-      </div>
-      <button class="btn" onclick="nextStep(1)">다음</button>
-    </div>
-
-    <!-- 3. Step 2: 행동 입력 -->
-    <div id="screen-step2" class="screen">
-      <div class="input-group">
-        <label for="input-action">어떤 행동을 하다가 잃어버렸나요?</label>
-        <input type="text" id="input-action" placeholder="예: 운동을 하다가, 카페에서 공부하다가">
-      </div>
-      <button class="btn" onclick="nextStep(2)">다음</button>
-    </div>
-
-    <!-- 4. Step 3: 마지막 장소 입력 -->
-    <div id="screen-step3" class="screen">
-      <div class="input-group">
-        <label for="input-last-place">마지막으로 갔던 장소</label>
-        <input type="text" id="input-last-place" placeholder="예: 도서관 2층, 버스정류장">
-      </div>
-      <button class="btn" onclick="nextStep(3)">다음</button>
-    </div>
-
-    <!-- 5. Step 4: 평소 들고 가던 장소 입력 -->
-    <div id="screen-step4" class="screen">
-      <div class="input-group">
-        <label id="label-usual-place" for="input-usual-place">평소에 어디에 들고 가나요?</label>
-        <input type="text" id="input-usual-place" placeholder="예: 학교, 회사, 가방 속">
-      </div>
-      <button class="btn" onclick="startAnalysis()">추적 시작</button>
-    </div>
-
-    <!-- 6. 로딩 화면 -->
-    <div id="screen-loading" class="screen">
-      <div class="spinner"></div>
-      <div id="loading-text" class="loading-text">분실물 추적중..🔍</div>
-    </div>
-
-    <!-- 7. 결과 화면 (1, 2, 3등) -->
-    <div id="screen-result" class="screen">
-      <h2>분실물 예상 위치</h2>
-      <p style="margin-bottom: 15px; font-size: 0.9rem;">입력한 단서를 바탕으로 분석한 결과입니다.</p>
-
-      <div class="rank-1">
-        <span>🥇 가장 확률이 높은 1위</span>
-        <div id="rank-1-text" class="rank-1-title">-</div>
+  <div class="app-container">
+    <div class="glass-card">
+      
+      <div class="progress-bar-container">
+        <div class="progress-bar-fill" id="progress-bar"></div>
       </div>
 
-      <div class="sub-ranks">
-        <div class="sub-rank-item" id="rank-2-text">🥈 2위: -</div>
-        <div class="sub-rank-item" id="rank-3-text">🥉 3위: -</div>
+      <div id="screen-start" class="screen active">
+        <div class="badge"><i class="fa-solid fa-magnifying-glass"></i> AI 탐정 알고리즘</div>
+        <h1 class="title">분실물 추적 탐정</h1>
+        <p class="subtitle">단서 몇 가지로 당신의 소중한 물건이 있을 법한 위치를 정확히 추적해 드립니다.</p>
+        <button class="btn" onclick="goToStep(1)">
+          분실물 찾기 <span style="font-size: 1.3rem;">🕵️‍♂️</span>
+        </button>
       </div>
 
-      <div class="button-group">
-        <button class="btn btn-secondary" onclick="showMoreCandidates()">나머지 후보들</button>
-        <button class="btn" onclick="resetAll()">처음으로 돌아가기</button>
+      <div id="screen-step1" class="screen">
+        <div class="badge">STEP 01</div>
+        <div class="input-wrapper">
+          <label class="input-label" for="input-item">
+            <i class="fa-solid fa-box-open" style="color: #6366f1; margin-right: 6px;"></i> 잃어버린 분실물은 무엇인가요?
+          </label>
+          <input type="text" id="input-item" class="input-field" placeholder="예: 무선 이어폰, 가죽 지갑, 자동차 키" onkeypress="handleEnter(event, 1)">
+        </div>
+        <button class="btn" onclick="goToStep(2)">
+          다음 단계 <i class="fa-solid fa-arrow-right"></i>
+        </button>
       </div>
+
+      <div id="screen-step2" class="screen">
+        <div class="badge">STEP 02</div>
+        <div class="input-wrapper">
+          <label class="input-label" for="input-action">
+            <i class="fa-solid fa-person-running" style="color: #a855f7; margin-right: 6px;"></i> 어떤 행동을 하다가 잃어버렸나요?
+          </label>
+          <input type="text" id="input-action" class="input-field" placeholder="예: 카페에서 음료 주문하기, 조깅하기, 버스 탑승" onkeypress="handleEnter(event, 2)">
+        </div>
+        <button class="btn" onclick="goToStep(3)">
+          다음 단계 <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+
+      <div id="screen-step3" class="screen">
+        <div class="badge">STEP 03</div>
+        <div class="input-wrapper">
+          <label class="input-label" for="input-last-place">
+            <i class="fa-solid fa-location-dot" style="color: #ec4899; margin-right: 6px;"></i> 마지막으로 기억나는 장소는 어디인가요?
+          </label>
+          <input type="text" id="input-last-place" class="input-field" placeholder="예: 도서관 2층 열람실, 택시 뒷좌석" onkeypress="handleEnter(event, 3)">
+        </div>
+        <button class="btn" onclick="goToStep(4)">
+          다음 단계 <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+
+      <div id="screen-step4" class="screen">
+        <div class="badge">STEP 04</div>
+        <div class="input-wrapper">
+          <label class="input-label" id="label-usual-place" for="input-usual-place">
+            평소에 물건을 어디에 들고 가나요?
+          </label>
+          <input type="text" id="input-usual-place" class="input-field" placeholder="예: 회사, 백팩 겉주머니, 헬스장" onkeypress="handleEnter(event, 4)">
+        </div>
+        <button class="btn" onclick="startAnalysis()">
+          추적 시작하기 <i class="fa-solid fa-radar"></i>
+        </button>
+      </div>
+
+      <div id="screen-loading" class="screen">
+        <div class="radar-container">
+          <div class="radar-circle"></div>
+          <div class="radar-circle"></div>
+          <div class="radar-circle"></div>
+          <div class="radar-pulse"></div>
+          <i class="fa-solid fa-compass-drafting radar-icon"></i>
+        </div>
+        <div class="loading-text-container">
+          <div id="loading-text" class="loading-text">분실물 추적중..🔍</div>
+        </div>
+      </div>
+
+      <div id="screen-result" class="screen">
+        <div class="badge" style="background: rgba(16, 185, 129, 0.1); color: #10b981; border-color: rgba(16, 185, 129, 0.2);">
+          <i class="fa-solid fa-check-double"></i> 분석 완료
+        </div>
+        
+        <div class="results-wrapper">
+          <div class="rank-1-card">
+            <span class="rank-badge-top">🥇 최우선 예상 위치 (1위)</span>
+            <div id="rank-1-text" class="rank-1-title">-</div>
+            <span id="rank-1-score" class="score-tag">추정 일치율 96%</span>
+          </div>
+
+          <div class="rank-list">
+            <div class="rank-item">
+              <div class="rank-item-label">
+                <span class="rank-num silver">2</span>
+                <span id="rank-2-text">-</span>
+              </div>
+              <span id="rank-2-score" style="font-size: 0.85rem; font-weight: 700; color: #64748b;">88%</span>
+            </div>
+            <div class="rank-item">
+              <div class="rank-item-label">
+                <span class="rank-num bronze">3</span>
+                <span id="rank-3-text">-</span>
+              </div>
+              <span id="rank-3-score" style="font-size: 0.85rem; font-weight: 700; color: #64748b;">75%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-secondary" onclick="showMoreCandidates()">
+            <i class="fa-solid fa-list-ol"></i> 나머지 후보들
+          </button>
+          <button class="btn" onclick="resetAll()">
+            <i class="fa-solid fa-rotate-right"></i> 처음으로
+          </button>
+        </div>
+      </div>
+
+      <div id="screen-more" class="screen">
+        <div class="badge"><i class="fa-solid fa-magnifying-glass-plus"></i> 추가 예상 후보</div>
+        <p class="subtitle" style="margin-bottom: 20px; text-align: left;">가능성은 낮지만 확인해볼 만한 장소입니다.</p>
+
+        <div class="results-wrapper">
+          <div class="rank-list" style="background: white; padding: 16px;">
+            <div class="rank-item">
+              <div class="rank-item-label">
+                <span class="rank-num">4</span>
+                <span id="rank-4-text">-</span>
+              </div>
+              <span id="rank-4-score" style="font-size: 0.85rem; font-weight: 700; color: #64748b;">58%</span>
+            </div>
+            <div class="rank-item">
+              <div class="rank-item-label">
+                <span class="rank-num">5</span>
+                <span id="rank-5-text">-</span>
+              </div>
+              <span id="rank-5-score" style="font-size: 0.85rem; font-weight: 700; color: #64748b;">42%</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn" onclick="resetAll()">
+          <i class="fa-solid fa-house"></i> 처음으로 돌아가기
+        </button>
+      </div>
+
     </div>
-
-    <!-- 8. 나머지 후보 화면 (4, 5등) -->
-    <div id="screen-more" class="screen">
-      <h2>나머지 예상 후보</h2>
-      <p style="margin-bottom: 15px; font-size: 0.9rem;">추가적인 가능성이 있는 장소들입니다.</p>
-
-      <div class="sub-ranks">
-        <div class="sub-rank-item" id="rank-4-text">4위: -</div>
-        <div class="sub-rank-item" id="rank-5-text">5위: -</div>
-      </div>
-
-      <button class="btn" onclick="resetAll()">처음으로 돌아가기</button>
-    </div>
-
   </div>
 
   <script>
-    // 사용자 입력 데이터 저장 객체
     const formData = {
       item: '',
       action: '',
@@ -268,97 +660,175 @@
       usualPlace: ''
     };
 
-    // 화면 전환 함수
-    function showScreen(screenId) {
-      document.querySelectorAll('.screen').forEach(screen => {
-        screen.classList.remove('active');
-      });
-      document.getElementById(screenId).classList.add('active');
+    let currentScreenId = 'screen-start';
+
+    function updateProgressBar(step) {
+      const progressBar = document.getElementById('progress-bar');
+      const percentages = [0, 25, 50, 75, 100, 100, 100];
+      progressBar.style.width = percentages[step] + '%';
     }
 
-    // [시작] 분실물 찾기 버튼 클릭시
-    function startTracking() {
-      showScreen('screen-step1');
+    function switchScreen(targetScreenId) {
+      if (currentScreenId === targetScreenId) return;
+
+      const currentScreen = document.getElementById(currentScreenId);
+      const targetScreen = document.getElementById(targetScreenId);
+
+      if (currentScreen) {
+        currentScreen.classList.add('exit-left');
+        currentScreen.classList.remove('active');
+      }
+
+      setTimeout(() => {
+        if (currentScreen) {
+          currentScreen.classList.remove('exit-left');
+        }
+        targetScreen.classList.add('active');
+        currentScreenId = targetScreenId;
+
+        const inputField = targetScreen.querySelector('input');
+        if (inputField) {
+          inputField.focus();
+        }
+      }, 250);
     }
 
-    // Step 이동 처리
-    function nextStep(currentStep) {
-      if (currentStep === 1) {
+    function goToStep(step) {
+      if (step === 1) {
+        updateProgressBar(1);
+        switchScreen('screen-step1');
+      } else if (step === 2) {
         const item = document.getElementById('input-item').value.trim();
-        if (!item) { alert('분실물을 입력해주세요!'); return; }
+        if (!item) {
+          shakeInput('input-item');
+          return;
+        }
         formData.item = item;
-        showScreen('screen-step2');
-      } else if (currentStep === 2) {
+        updateProgressBar(2);
+        switchScreen('screen-step2');
+      } else if (step === 3) {
         const action = document.getElementById('input-action').value.trim();
-        if (!action) { alert('행동을 입력해주세요!'); return; }
+        if (!action) {
+          shakeInput('input-action');
+          return;
+        }
         formData.action = action;
-        showScreen('screen-step3');
-      } else if (currentStep === 3) {
+        updateProgressBar(3);
+        switchScreen('screen-step3');
+      } else if (step === 4) {
         const lastPlace = document.getElementById('input-last-place').value.trim();
-        if (!lastPlace) { alert('마지막으로 갔던 장소를 입력해주세요!'); return; }
+        if (!lastPlace) {
+          shakeInput('input-last-place');
+          return;
+        }
         formData.lastPlace = lastPlace;
         
-        // 동적으로 4번째 질문 라벨 설정
-        document.getElementById('label-usual-place').innerText = 
-          `평소에 ${formData.item}을(를) 어디에 들고 가나요?`;
+        document.getElementById('label-usual-place').innerHTML = 
+          `<i class="fa-solid fa-briefcase" style="color: #6366f1; margin-right: 6px;"></i> 평소에 <span style="color:#7c3aed;">${escapeHtml(formData.item)}</span>을(를) 어디에 들고 가나요?`;
         
-        showScreen('screen-step4');
+        updateProgressBar(4);
+        switchScreen('screen-step4');
       }
     }
 
-    // 추적 및 점수 계산 시작
+    function handleEnter(event, step) {
+      if (event.key === 'Enter') {
+        if (step === 4) {
+          startAnalysis();
+        } else {
+          goToStep(step + 1);
+        }
+      }
+    }
+
+    function shakeInput(inputId) {
+      const input = document.getElementById(inputId);
+      input.style.borderColor = '#ef4444';
+      input.style.boxShadow = '0 0 0 4px rgba(239, 68, 68, 0.2)';
+      
+      input.animate([
+        { transform: 'translateX(0)' },
+        { transform: 'translateX(-8px)' },
+        { transform: 'translateX(8px)' },
+        { transform: 'translateX(-4px)' },
+        { transform: 'translateX(4px)' },
+        { transform: 'translateX(0)' }
+      ], {
+        duration: 400,
+        easing: 'ease-in-out'
+      });
+
+      setTimeout(() => {
+        input.style.borderColor = '';
+        input.style.boxShadow = '';
+      }, 2000);
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.innerText = text;
+      return div.innerHTML;
+    }
+
     function startAnalysis() {
       const usualPlace = document.getElementById('input-usual-place').value.trim();
-      if (!usualPlace) { alert('장소를 입력해주세요!'); return; }
+      if (!usualPlace) {
+        shakeInput('input-usual-place');
+        return;
+      }
       formData.usualPlace = usualPlace;
 
-      // 1. 로딩 화면 표시 및 1차 텍스트 설정
-      showScreen('screen-loading');
-      document.getElementById('loading-text').innerText = "분실물 추적중..🔍";
+      const loadingText = document.getElementById('loading-text');
+      loadingText.innerHTML = '분실물 추적중..🔍';
+      switchScreen('screen-loading');
 
-      // 2. 2초 후 "후보 선정중.."으로 텍스트 변경 (로딩 유지)
       setTimeout(() => {
-        document.getElementById('loading-text').innerText = "후보 선정중..";
+        loadingText.style.opacity = '0';
+        setTimeout(() => {
+          loadingText.innerHTML = '후보 선정중..';
+          loadingText.style.opacity = '1';
+        }, 200);
       }, 2000);
 
-      // 3. 다시 2초 후 점수 산출 및 결과 화면 표시
       setTimeout(() => {
-        calculateAndShowResults();
+        calculateAndDisplayResults();
       }, 4000);
     }
 
-    // 후보지 추적 및 점수 매기기 로직
-    function calculateAndShowResults() {
-      // 입력값을 조합하여 후보군 생성 및 점수 부여
+    function calculateAndDisplayResults() {
       const candidates = [
-        { name: `${formData.lastPlace} 근처 / 동선 내부`, score: 95 },
-        { name: `${formData.action}을(를) 했던 정확한 위치`, score: 88 },
+        { name: `${formData.lastPlace} 주변 및 이동 동선`, score: 96 },
+        { name: `${formData.action}을(를) 수행했던 장소`, score: 88 },
         { name: `평소 자주 가던 ${formData.usualPlace}`, score: 75 },
-        { name: `이동 중에 이용한 대중교통 또는 길거리`, score: 60 },
-        { name: `집 안 (가방 속, 외투 주머니, 책상 위 등)`, score: 45 }
+        { name: `이동 시 사용한 대중교통 또는 이동 수단`, score: 58 },
+        { name: `가방 주머니/옷장/집 안 서랍 내부`, score: 42 }
       ];
 
-      // 점수 높은 순으로 정렬 (1등 ~ 5등)
       candidates.sort((a, b) => b.score - a.score);
 
-      // 화면에 데이터 출력
-      document.getElementById('rank-1-text').innerText = `${candidates[0].name} (${candidates[0].score}점)`;
-      document.getElementById('rank-2-text').innerText = `🥈 2위: ${candidates[1].name} (${candidates[1].score}점)`;
-      document.getElementById('rank-3-text').innerText = `🥉 3위: ${candidates[2].name} (${candidates[2].score}점)`;
+      document.getElementById('rank-1-text').innerText = candidates[0].name;
+      document.getElementById('rank-1-score').innerText = `추정 일치율 ${candidates[0].score}%`;
       
-      document.getElementById('rank-4-text').innerText = `4위: ${candidates[3].name} (${candidates[3].score}점)`;
-      document.getElementById('rank-5-text').innerText = `5위: ${candidates[4].name} (${candidates[4].score}점)`;
+      document.getElementById('rank-2-text').innerText = candidates[1].name;
+      document.getElementById('rank-2-score').innerText = `${candidates[1].score}%`;
 
-      // 결과 화면 표시
-      showScreen('screen-result');
+      document.getElementById('rank-3-text').innerText = candidates[2].name;
+      document.getElementById('rank-3-score').innerText = `${candidates[2].score}%`;
+
+      document.getElementById('rank-4-text').innerText = candidates[3].name;
+      document.getElementById('rank-4-score').innerText = `${candidates[3].score}%`;
+
+      document.getElementById('rank-5-text').innerText = candidates[4].name;
+      document.getElementById('rank-5-score').innerText = `${candidates[4].score}%`;
+
+      updateProgressBar(5);
+      switchScreen('screen-result');
     }
 
-    // 나머지 후보 보기
     function showMoreCandidates() {
-      showScreen('screen-more');
+      switchScreen('screen-more');
     }
 
-    // 처음으로 돌아가기 (초기화)
     function resetAll() {
       document.getElementById('input-item').value = '';
       document.getElementById('input-action').value = '';
@@ -370,7 +840,8 @@
       formData.lastPlace = '';
       formData.usualPlace = '';
 
-      showScreen('screen-start');
+      updateProgressBar(0);
+      switchScreen('screen-start');
     }
   </script>
 </body>
