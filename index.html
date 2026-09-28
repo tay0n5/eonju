@@ -42,7 +42,7 @@
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid rgba(255, 255, 255, 0.125);
       width: 100%;
-      max-width: 520px;
+      max-width: 540px;
       padding: 35px 25px;
       border-radius: 24px;
       box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
@@ -99,6 +99,12 @@
       font-size: 1rem;
     }
 
+    .search-box-wrapper {
+      position: relative;
+      display: flex;
+      gap: 8px;
+    }
+
     input[type="text"] {
       width: 100%;
       padding: 14px 16px;
@@ -117,24 +123,46 @@
       background: rgba(15, 23, 42, 0.8);
     }
 
+    .search-btn {
+      padding: 0 16px;
+      background: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s ease;
+    }
+
+    .search-btn:hover {
+      background: #6366f1;
+    }
+
     /* 위도 / 경도 상태 안내 바 */
     .coord-info {
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(15, 23, 42, 0.85);
       border: 1px solid rgba(56, 189, 248, 0.3);
-      padding: 8px 12px;
-      border-radius: 8px;
+      padding: 10px 14px;
+      border-radius: 10px;
       font-size: 0.85rem;
       color: #38bdf8;
-      margin-top: 8px;
+      margin-top: 10px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       font-weight: 500;
     }
 
+    .coord-val {
+      font-family: monospace;
+      color: #7dd3fc;
+      font-weight: 700;
+    }
+
     .map-container {
       width: 100%;
-      height: 220px;
+      height: 230px;
       border-radius: 14px;
       margin-top: 8px;
       border: 1px solid rgba(255, 255, 255, 0.2);
@@ -144,7 +172,7 @@
     .map-hint {
       font-size: 0.8rem;
       color: #94a3b8;
-      margin-top: 6px;
+      margin-top: 8px;
     }
 
     .btn {
@@ -174,8 +202,8 @@
     }
 
     .btn-small {
-      padding: 6px 12px;
-      font-size: 0.8rem;
+      padding: 8px 12px;
+      font-size: 0.82rem;
       border-radius: 8px;
       width: auto;
       margin: 0;
@@ -227,11 +255,17 @@
       letter-spacing: 1px;
     }
 
+    .rank-1-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 4px;
+    }
+
     .rank-1-title {
-      font-size: 1.4rem;
+      font-size: 1.3rem;
       font-weight: 800;
       color: #ffffff;
-      margin: 6px 0;
     }
 
     .sub-ranks {
@@ -240,7 +274,7 @@
       padding: 12px 16px;
       border-radius: 16px;
       text-align: left;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
     }
 
     .sub-rank-item {
@@ -267,14 +301,21 @@
       gap: 10px;
     }
 
-    /* 결과 지도 모달/카드 */
-    #result-map-card {
-      display: none;
+    /* 결과 지도 박스 */
+    .result-map-card {
       margin-top: 15px;
       padding: 15px;
       background: rgba(15, 23, 42, 0.9);
       border-radius: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      text-align: left;
+    }
+
+    .result-map-title {
+      font-size: 0.9rem;
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: #38bdf8;
     }
   </style>
 </head>
@@ -284,7 +325,7 @@
     
     <!-- 1. 시작 화면 -->
     <div id="screen-start" class="screen active">
-      <h1>분실물 추적 서비스</h1>
+      <h1>분실물 추적 탐정</h1>
       <p>단서와 위치 지도를 활용하여<br>잃어버린 물건을 정밀 추적합니다.</p>
       <button class="btn" onclick="startTracking()">분실물 찾기 🕵️‍♂️</button>
     </div>
@@ -293,7 +334,7 @@
     <div id="screen-step1" class="screen">
       <div class="input-group">
         <label for="input-item">잃어버린 분실물</label>
-        <input type="text" id="input-item" placeholder="예: 지갑, 에어팟, 차키">
+        <input type="text" id="input-item" placeholder="예: 지갑, 에어팟, 차키" onkeydown="if(event.key==='Enter') nextStep(1)">
       </div>
       <button class="btn" onclick="nextStep(1)">다음</button>
     </div>
@@ -302,41 +343,47 @@
     <div id="screen-step2" class="screen">
       <div class="input-group">
         <label for="input-action">어떤 행동을 하다가 잃어버렸나요?</label>
-        <input type="text" id="input-action" placeholder="예: 운동을 하다가, 카페에서 공부하다가">
+        <input type="text" id="input-action" placeholder="예: 운동을 하다가, 카페에서 공부하다가" onkeydown="if(event.key==='Enter') nextStep(2)">
       </div>
       <button class="btn" onclick="nextStep(2)">다음</button>
     </div>
 
-    <!-- 4. Step 3: 마지막 장소 입력 + 자동 탐색 지도 -->
+    <!-- 4. Step 3: 마지막 장소 입력 + 엔터 검색 지도 -->
     <div id="screen-step3" class="screen">
       <div class="input-group">
-        <label for="input-last-place">마지막으로 갔던 장소</label>
-        <input type="text" id="input-last-place" placeholder="예: 강남역, 홍대 카페, 서울시청" oninput="onPlaceInput(3)">
+        <label for="input-last-place">마지막으로 갔던 장소 (입력 후 Enter ↵)</label>
+        <div class="search-box-wrapper">
+          <input type="text" id="input-last-place" placeholder="예: 강남역, 홍대 카페, 서울시청" onkeydown="handlePlaceKeydown(event, 3)">
+          <button class="search-btn" onclick="searchPlace(3)">검색</button>
+        </div>
         
         <div class="coord-info" id="coord-info-3">
-          <span>📍 좌표 정보:</span>
-          <span id="coords-display-3">위도: 37.5665, 경도: 126.9780</span>
+          <span>📍 핀 좌표:</span>
+          <span class="coord-val" id="coords-display-3">위도: 37.5665, 경도: 126.9780</span>
         </div>
 
         <div id="map-step3" class="map-container"></div>
-        <div class="map-hint">💡 장소명을 입력하면 지도가 자동 이동하며, 지도나 핀을 직접 클릭하셔도 됩니다.</div>
+        <div class="map-hint">💡 장소 입력 후 **Enter**를 누르거나 지도/핀을 직접 클릭하여 위치를 조정하세요.</div>
       </div>
       <button class="btn" onclick="nextStep(3)">다음</button>
     </div>
 
-    <!-- 5. Step 4: 평소 들고 가던 장소 입력 + 자동 탐색 지도 -->
+    <!-- 5. Step 4: 평소 들고 가던 장소 입력 + 엔터 검색 지도 -->
     <div id="screen-step4" class="screen">
       <div class="input-group">
-        <label id="label-usual-place" for="input-usual-place">평소에 어디에 들고 가나요?</label>
-        <input type="text" id="input-usual-place" placeholder="예: 회사, 중앙도서관, 학교" oninput="onPlaceInput(4)">
+        <label id="label-usual-place" for="input-usual-place">평소에 어디에 들고 가나요? (입력 후 Enter ↵)</label>
+        <div class="search-box-wrapper">
+          <input type="text" id="input-usual-place" placeholder="예: 회사, 중앙도서관, 학교" onkeydown="handlePlaceKeydown(event, 4)">
+          <button class="search-btn" onclick="searchPlace(4)">검색</button>
+        </div>
         
         <div class="coord-info" id="coord-info-4">
-          <span>📍 좌표 정보:</span>
-          <span id="coords-display-4">위도: 37.5665, 경도: 126.9780</span>
+          <span>📍 핀 좌표:</span>
+          <span class="coord-val" id="coords-display-4">위도: 37.5665, 경도: 126.9780</span>
         </div>
 
         <div id="map-step4" class="map-container"></div>
-        <div class="map-hint">💡 장소명을 입력하면 지도가 자동 이동하며, 지도나 핀을 직접 클릭하셔도 됩니다.</div>
+        <div class="map-hint">💡 장소 입력 후 **Enter**를 누르거나 지도/핀을 직접 클릭하여 위치를 조정하세요.</div>
       </div>
       <button class="btn" onclick="startAnalysis()">추적 시작</button>
     </div>
@@ -351,34 +398,36 @@
 
     <!-- 7. 결과 화면 (1, 2, 3등) -->
     <div id="screen-result" class="screen">
-      <h2>분실물 예상 위치</h2>
-      <p>단서와 위치 좌표를 분석한 결과입니다.</p>
+      <h2>분실물 예상 위치 분석</h2>
+      <p>단서 및 위치 좌표 기반 추정 결과입니다.</p>
 
       <div class="rank-1">
         <div class="rank-1-badge">🥇 최유력 후보 (1위)</div>
-        <div id="rank-1-text" class="rank-1-title">-</div>
-        <button class="btn btn-small" onclick="showResultMap(1)" style="margin-top: 5px;">🗺️ 지도 보기</button>
+        <div class="rank-1-header">
+          <div id="rank-1-text" class="rank-1-title">-</div>
+          <button class="btn btn-small" onclick="showResultMap(1, 'main')">📍 지도 전환</button>
+        </div>
       </div>
 
       <div class="sub-ranks">
         <div class="sub-rank-item">
           <div class="rank-info" id="rank-2-text">🥈 2위: -</div>
-          <button class="btn btn-small btn-secondary" onclick="showResultMap(2)">🗺️ 지도</button>
+          <button class="btn btn-small btn-secondary" onclick="showResultMap(2, 'main')">🗺️ 지도</button>
         </div>
         <div class="sub-rank-item">
           <div class="rank-info" id="rank-3-text">🥉 3위: -</div>
-          <button class="btn btn-small btn-secondary" onclick="showResultMap(3)">🗺️ 지도</button>
+          <button class="btn btn-small btn-secondary" onclick="showResultMap(3, 'main')">🗺️ 지도</button>
         </div>
       </div>
 
-      <!-- 결과 확인용 지도 박스 -->
-      <div id="result-map-card">
-        <div style="font-size:0.9rem; font-weight:bold; margin-bottom:8px; text-align:left;" id="result-map-title">📍 예상 위치 지도</div>
-        <div id="map-result" class="map-container"></div>
+      <!-- 1위 지도가 기본으로 표시되는 통합 결과 지도 박스 -->
+      <div id="result-map-card-main" class="result-map-card">
+        <div class="result-map-title" id="result-map-title-main">📍 1위 예상 위치 지도 및 핀 위치</div>
+        <div id="map-result-main" class="map-container"></div>
       </div>
 
       <div class="button-group" style="margin-top: 15px;">
-        <button class="btn btn-secondary" onclick="showMoreCandidates()">나머지 후보들</button>
+        <button class="btn btn-secondary" onclick="showMoreCandidates()">나머지 후보들 (4, 5위)</button>
         <button class="btn" onclick="resetAll()">처음으로 돌아가기</button>
       </div>
     </div>
@@ -386,20 +435,29 @@
     <!-- 8. 나머지 후보 화면 (4, 5등) -->
     <div id="screen-more" class="screen">
       <h2>나머지 예상 후보</h2>
-      <p>추가적인 가능성이 있는 장소들입니다.</p>
+      <p>추가적인 가능성이 있는 후보 위치들입니다.</p>
 
       <div class="sub-ranks">
         <div class="sub-rank-item">
           <div class="rank-info" id="rank-4-text">4위: -</div>
-          <button class="btn btn-small btn-secondary" onclick="showResultMap(4)">🗺️ 지도</button>
+          <button class="btn btn-small btn-secondary" onclick="showResultMap(4, 'more')">🗺️ 지도</button>
         </div>
         <div class="sub-rank-item">
           <div class="rank-info" id="rank-5-text">5위: -</div>
-          <button class="btn btn-small btn-secondary" onclick="showResultMap(5)">🗺️ 지도</button>
+          <button class="btn btn-small btn-secondary" onclick="showResultMap(5, 'more')">🗺️ 지도</button>
         </div>
       </div>
 
-      <button class="btn" onclick="resetAll()">처음으로 돌아가기</button>
+      <!-- 4, 5위용 지도 박스 -->
+      <div id="result-map-card-more" class="result-map-card" style="display: none;">
+        <div class="result-map-title" id="result-map-title-more">📍 후보 위치 지도 및 핀 위치</div>
+        <div id="map-result-more" class="map-container"></div>
+      </div>
+
+      <div class="button-group" style="margin-top: 15px;">
+        <button class="btn btn-secondary" onclick="showScreen('screen-result')">◀ 이전으로</button>
+        <button class="btn" onclick="resetAll()">처음으로 돌아가기</button>
+      </div>
     </div>
 
   </div>
@@ -416,9 +474,9 @@
 
     let map3, marker3;
     let map4, marker4;
-    let resultMap, resultMarker;
+    let resultMapMain, resultMarkerMain;
+    let resultMapMore, resultMarkerMore;
     let candidatesData = [];
-    let searchTimer3, searchTimer4;
 
     function showScreen(screenId) {
       const currentActive = document.querySelector('.screen.active');
@@ -437,6 +495,8 @@
             nextScreen.style.opacity = '1';
             if (screenId === 'screen-step3' && map3) map3.invalidateSize();
             if (screenId === 'screen-step4' && map4) map4.invalidateSize();
+            if (screenId === 'screen-result' && resultMapMain) resultMapMain.invalidateSize();
+            if (screenId === 'screen-more' && resultMapMore) resultMapMore.invalidateSize();
           }, 50);
         }, 300);
       } else {
@@ -469,7 +529,7 @@
         formData.lastPlace = lastPlace;
         
         document.getElementById('label-usual-place').innerText = 
-          `평소에 ${formData.item}을(를) 어디에 들고 가나요?`;
+          `평소에 ${formData.item}을(를) 어디에 들고 가나요? (입력 후 Enter ↵)`;
         
         showScreen('screen-step4');
         initMap4();
@@ -479,10 +539,10 @@
     // 지도 3 초기화
     function initMap3() {
       if (map3) return;
-      map3 = L.map('map-step3').setView([37.5665, 126.9780], 15);
+      map3 = L.map('map-step3').setView([formData.lastCoords.lat, formData.lastCoords.lng], 15);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map3);
       
-      marker3 = L.marker([37.5665, 126.9780], { draggable: true }).addTo(map3);
+      marker3 = L.marker([formData.lastCoords.lat, formData.lastCoords.lng], { draggable: true }).addTo(map3);
       
       map3.on('click', function(e) {
         marker3.setLatLng(e.latlng);
@@ -495,7 +555,7 @@
     }
 
     function updateLocation3(latlng) {
-      formData.lastCoords = latlng;
+      formData.lastCoords = { lat: latlng.lat, lng: latlng.lng };
       document.getElementById('coords-display-3').innerText = 
         `위도: ${latlng.lat.toFixed(4)}, 경도: ${latlng.lng.toFixed(4)}`;
     }
@@ -503,10 +563,10 @@
     // 지도 4 초기화
     function initMap4() {
       if (map4) return;
-      map4 = L.map('map-step4').setView([37.5665, 126.9780], 15);
+      map4 = L.map('map-step4').setView([formData.usualCoords.lat, formData.usualCoords.lng], 15);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map4);
       
-      marker4 = L.marker([37.5665, 126.9780], { draggable: true }).addTo(map4);
+      marker4 = L.marker([formData.usualCoords.lat, formData.usualCoords.lng], { draggable: true }).addTo(map4);
       
       map4.on('click', function(e) {
         marker4.setLatLng(e.latlng);
@@ -519,43 +579,53 @@
     }
 
     function updateLocation4(latlng) {
-      formData.usualCoords = latlng;
+      formData.usualCoords = { lat: latlng.lat, lng: latlng.lng };
       document.getElementById('coords-display-4').innerText = 
         `위도: ${latlng.lat.toFixed(4)}, 경도: ${latlng.lng.toFixed(4)}`;
     }
 
-    // ⌨️ 장소명 입력 시 실시간 위치 자동 이동 및 핀 지정
-    function onPlaceInput(step) {
-      const timer = step === 3 ? searchTimer3 : searchTimer4;
-      clearTimeout(timer);
+    // Enter 키 검색 이벤트 처리
+    function handlePlaceKeydown(event, step) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        searchPlace(step);
+      }
+    }
 
-      const query = document.getElementById(step === 3 ? 'input-last-place' : 'input-usual-place').value.trim();
-      if (query.length < 2) return;
+    // 🔍 Nominatim API를 통한 장소 검색 & 핀 고정
+    function searchPlace(step) {
+      const inputId = step === 3 ? 'input-last-place' : 'input-usual-place';
+      const query = document.getElementById(inputId).value.trim();
 
-      const newTimer = setTimeout(() => {
-        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
-          .then(res => res.json())
-          .then(data => {
-            if (data && data.length > 0) {
-              const lat = parseFloat(data[0].lat);
-              const lon = parseFloat(data[0].lon);
+      if (!query) {
+        alert('검색할 장소명을 입력해 주세요.');
+        return;
+      }
 
-              if (step === 3) {
-                map3.setView([lat, lon], 16);
-                marker3.setLatLng([lat, lon]);
-                updateLocation3({ lat, lng: lon });
-              } else if (step === 4) {
-                map4.setView([lat, lon], 16);
-                marker4.setLatLng([lat, lon]);
-                updateLocation4({ lat, lng: lon });
-              }
+      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.length > 0) {
+            const lat = parseFloat(data[0].lat);
+            const lng = parseFloat(data[0].lon);
+
+            if (step === 3) {
+              map3.setView([lat, lng], 16);
+              marker3.setLatLng([lat, lng]);
+              updateLocation3({ lat, lng });
+            } else if (step === 4) {
+              map4.setView([lat, lng], 16);
+              marker4.setLatLng([lat, lng]);
+              updateLocation4({ lat, lng });
             }
-          })
-          .catch(err => console.log('Geocoding error:', err));
-      }, 600); // 사용자가 입력 타이핑을 멈춘 후 0.6초 뒤 자동 검색 실행
-
-      if (step === 3) searchTimer3 = newTimer;
-      else searchTimer4 = newTimer;
+          } else {
+            alert('해당 장소를 찾을 수 없습니다. 다른 검색어를 입력해 주세요.');
+          }
+        })
+        .catch(err => {
+          console.error('검색 오류:', err);
+          alert('장소 검색 중 오류가 발생했습니다.');
+        });
     }
 
     function startAnalysis() {
@@ -570,23 +640,24 @@
       setTimeout(() => {
         loadingText.style.opacity = '0';
         setTimeout(() => {
-          loadingText.innerText = "후보 선정중..";
+          loadingText.innerText = "위치 및 좌표 정밀 분석중..";
           loadingText.style.opacity = '1';
         }, 300);
       }, 2000);
 
       setTimeout(() => {
         calculateAndShowResults();
-      }, 4000);
+      }, 3800);
     }
 
     function calculateAndShowResults() {
+      // 5개 예상 후보 데이터 생성
       candidatesData = [
         { name: `${formData.lastPlace} 주변 동선`, score: 95, coords: formData.lastCoords },
-        { name: `${formData.action} 장소 주변 반경 50m`, score: 88, coords: formData.lastCoords },
+        { name: `${formData.action} 장소 주변 반경 50m`, score: 88, coords: { lat: formData.lastCoords.lat + 0.0012, lng: formData.lastCoords.lng - 0.0015 } },
         { name: `평소 가던 ${formData.usualPlace}`, score: 75, coords: formData.usualCoords },
-        { name: `이동 경로 상 대중교통 / 도로`, score: 60, coords: formData.lastCoords },
-        { name: `집 안 보관 장소 (가방, 서랍 등)`, score: 45, coords: formData.usualCoords }
+        { name: `이동 경로 상 대중교통 / 도로`, score: 62, coords: { lat: (formData.lastCoords.lat + formData.usualCoords.lat) / 2, lng: (formData.lastCoords.lng + formData.usualCoords.lng) / 2 } },
+        { name: `보관 장소 (가방, 차 내부 등)`, score: 48, coords: formData.usualCoords }
       ];
 
       candidatesData.sort((a, b) => b.score - a.score);
@@ -599,30 +670,51 @@
       document.getElementById('rank-5-text').innerHTML = `<span>5위: ${candidatesData[4].name}</span> <strong>${candidatesData[4].score}점</strong>`;
 
       showScreen('screen-result');
+      
+      // 결과 화면 진입 시 1위 지도를 자동으로 표시
+      showResultMap(1, 'main');
     }
 
-    function showResultMap(rankIndex) {
+    // 결과 지도 전환 및 핀 표시 기능 (main: 1~3위, more: 4~5위)
+    function showResultMap(rankIndex, context) {
       const target = candidatesData[rankIndex - 1];
-      const mapCard = document.getElementById('result-map-card');
-      mapCard.style.display = 'block';
+      
+      if (context === 'main') {
+        const titleEl = document.getElementById('result-map-title-main');
+        titleEl.innerText = `📍 [${rankIndex}위] ${target.name} (위도: ${target.coords.lat.toFixed(4)}, 경도: ${target.coords.lng.toFixed(4)})`;
 
-      document.getElementById('result-map-title').innerText = 
-        `📍 [${rankIndex}위] ${target.name} (위도: ${target.coords.lat.toFixed(4)}, 경도: ${target.coords.lng.toFixed(4)})`;
+        if (!resultMapMain) {
+          resultMapMain = L.map('map-result-main').setView([target.coords.lat, target.coords.lng], 16);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(resultMapMain);
+          resultMarkerMain = L.marker([target.coords.lat, target.coords.lng]).addTo(resultMapMain);
+        } else {
+          resultMapMain.setView([target.coords.lat, target.coords.lng], 16);
+          resultMarkerMain.setLatLng([target.coords.lat, target.coords.lng]);
+        }
+        setTimeout(() => resultMapMain.invalidateSize(), 100);
+      } else if (context === 'more') {
+        const cardMore = document.getElementById('result-map-card-more');
+        cardMore.style.display = 'block';
+        
+        const titleEl = document.getElementById('result-map-title-more');
+        titleEl.innerText = `📍 [${rankIndex}위] ${target.name} (위도: ${target.coords.lat.toFixed(4)}, 경도: ${target.coords.lng.toFixed(4)})`;
 
-      if (!resultMap) {
-        resultMap = L.map('map-result').setView([target.coords.lat, target.coords.lng], 16);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(resultMap);
-        resultMarker = L.marker([target.coords.lat, target.coords.lng]).addTo(resultMap);
-      } else {
-        resultMap.setView([target.coords.lat, target.coords.lng], 16);
-        resultMarker.setLatLng([target.coords.lat, target.coords.lng]);
+        if (!resultMapMore) {
+          resultMapMore = L.map('map-result-more').setView([target.coords.lat, target.coords.lng], 16);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(resultMapMore);
+          resultMarkerMore = L.marker([target.coords.lat, target.coords.lng]).addTo(resultMapMore);
+        } else {
+          resultMapMore.setView([target.coords.lat, target.coords.lng], 16);
+          resultMarkerMore.setLatLng([target.coords.lat, target.coords.lng]);
+        }
+        setTimeout(() => resultMapMore.invalidateSize(), 100);
       }
-
-      setTimeout(() => resultMap.invalidateSize(), 100);
     }
 
     function showMoreCandidates() {
       showScreen('screen-more');
+      // 4위 지도를 기본 선택하여 구동
+      showResultMap(4, 'more');
     }
 
     function resetAll() {
@@ -630,8 +722,13 @@
       document.getElementById('input-action').value = '';
       document.getElementById('input-last-place').value = '';
       document.getElementById('input-usual-place').value = '';
-      document.getElementById('result-map-card').style.display = 'none';
       
+      const cardMore = document.getElementById('result-map-card-more');
+      if (cardMore) cardMore.style.display = 'none';
+
+      formData.lastCoords = { lat: 37.5665, lng: 126.9780 };
+      formData.usualCoords = { lat: 37.5665, lng: 126.9780 };
+
       showScreen('screen-start');
     }
   </script>
