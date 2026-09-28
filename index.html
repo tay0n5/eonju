@@ -117,38 +117,21 @@
       background: rgba(15, 23, 42, 0.8);
     }
 
-    /* 장소 검색용 검색창 스타일 */
-    .search-box {
+    /* 위도 / 경도 상태 안내 바 */
+    .coord-info {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: #38bdf8;
+      margin-top: 8px;
       display: flex;
-      gap: 8px;
-      margin-top: 10px;
-      margin-bottom: 8px;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 500;
     }
 
-    .search-box input {
-      flex: 1;
-      padding: 10px 12px;
-      font-size: 0.9rem;
-    }
-
-    .search-box button {
-      padding: 10px 16px;
-      background: #6366f1;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: background 0.2s;
-    }
-
-    .search-box button:hover {
-      background: #4f46e5;
-    }
-
-    /* 지도 관련 스타일 */
     .map-container {
       width: 100%;
       height: 220px;
@@ -160,11 +143,8 @@
 
     .map-hint {
       font-size: 0.8rem;
-      color: #38bdf8;
-      margin-top: 4px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
+      color: #94a3b8;
+      margin-top: 6px;
     }
 
     .btn {
@@ -305,7 +285,7 @@
     <!-- 1. 시작 화면 -->
     <div id="screen-start" class="screen active">
       <h1>분실물 추적 서비스</h1>
-      <p>단서와 검색 지도 기능을 활용하여<br>잃어버린 물건을 정밀 추적합니다.</p>
+      <p>단서와 위치 지도를 활용하여<br>잃어버린 물건을 정밀 추적합니다.</p>
       <button class="btn" onclick="startTracking()">분실물 찾기 🕵️‍♂️</button>
     </div>
 
@@ -327,40 +307,36 @@
       <button class="btn" onclick="nextStep(2)">다음</button>
     </div>
 
-    <!-- 4. Step 3: 마지막 장소 입력 + 지도 검색 -->
+    <!-- 4. Step 3: 마지막 장소 입력 + 자동 탐색 지도 -->
     <div id="screen-step3" class="screen">
       <div class="input-group">
         <label for="input-last-place">마지막으로 갔던 장소</label>
-        <input type="text" id="input-last-place" placeholder="장소명 입력 또는 검색 후 선택">
+        <input type="text" id="input-last-place" placeholder="예: 강남역, 홍대 카페, 서울시청" oninput="onPlaceInput(3)">
         
-        <!-- 장소 검색창 -->
-        <div class="search-box">
-          <input type="text" id="search-step3" placeholder="예: 강남역, 홍대 카페, 서울시청" onkeypress="if(event.key==='Enter') searchLocation(3)">
-          <button onclick="searchLocation(3)">🔍 검색</button>
-          <button onclick="getCurrentLocation(3)" style="background:#059669;">📍 현위치</button>
+        <div class="coord-info" id="coord-info-3">
+          <span>📍 좌표 정보:</span>
+          <span id="coords-display-3">위도: 37.5665, 경도: 126.9780</span>
         </div>
 
-        <div class="map-hint">💡 장소를 검색하거나 지도를 클릭하면 핀이 자동으로 꽂힙니다.</div>
         <div id="map-step3" class="map-container"></div>
+        <div class="map-hint">💡 장소명을 입력하면 지도가 자동 이동하며, 지도나 핀을 직접 클릭하셔도 됩니다.</div>
       </div>
       <button class="btn" onclick="nextStep(3)">다음</button>
     </div>
 
-    <!-- 5. Step 4: 평소 들고 가던 장소 입력 + 지도 검색 -->
+    <!-- 5. Step 4: 평소 들고 가던 장소 입력 + 자동 탐색 지도 -->
     <div id="screen-step4" class="screen">
       <div class="input-group">
         <label id="label-usual-place" for="input-usual-place">평소에 어디에 들고 가나요?</label>
-        <input type="text" id="input-usual-place" placeholder="장소명 입력 또는 검색 후 선택">
+        <input type="text" id="input-usual-place" placeholder="예: 회사, 중앙도서관, 학교" oninput="onPlaceInput(4)">
         
-        <!-- 장소 검색창 -->
-        <div class="search-box">
-          <input type="text" id="search-step4" placeholder="예: 중앙도서관, 회사, 학교" onkeypress="if(event.key==='Enter') searchLocation(4)">
-          <button onclick="searchLocation(4)">🔍 검색</button>
-          <button onclick="getCurrentLocation(4)" style="background:#059669;">📍 현위치</button>
+        <div class="coord-info" id="coord-info-4">
+          <span>📍 좌표 정보:</span>
+          <span id="coords-display-4">위도: 37.5665, 경도: 126.9780</span>
         </div>
 
-        <div class="map-hint">💡 장소를 검색하거나 지도를 클릭해 위치 핀을 지정하세요.</div>
         <div id="map-step4" class="map-container"></div>
+        <div class="map-hint">💡 장소명을 입력하면 지도가 자동 이동하며, 지도나 핀을 직접 클릭하셔도 됩니다.</div>
       </div>
       <button class="btn" onclick="startAnalysis()">추적 시작</button>
     </div>
@@ -442,6 +418,7 @@
     let map4, marker4;
     let resultMap, resultMarker;
     let candidatesData = [];
+    let searchTimer3, searchTimer4;
 
     function showScreen(screenId) {
       const currentActive = document.querySelector('.screen.active');
@@ -488,7 +465,7 @@
         initMap3();
       } else if (currentStep === 3) {
         const lastPlace = document.getElementById('input-last-place').value.trim();
-        if (!lastPlace) { alert('마지막으로 갔던 장소를 입력하거나 지도에서 검색해 주세요!'); return; }
+        if (!lastPlace) { alert('마지막으로 갔던 장소를 입력해 주세요!'); return; }
         formData.lastPlace = lastPlace;
         
         document.getElementById('label-usual-place').innerText = 
@@ -509,17 +486,18 @@
       
       map3.on('click', function(e) {
         marker3.setLatLng(e.latlng);
-        updateLocation3(e.latlng, "지도 선택 위치");
+        updateLocation3(e.latlng);
       });
 
       marker3.on('dragend', function(e) {
-        updateLocation3(marker3.getLatLng(), "지도 드래그 위치");
+        updateLocation3(marker3.getLatLng());
       });
     }
 
-    function updateLocation3(latlng, name) {
+    function updateLocation3(latlng) {
       formData.lastCoords = latlng;
-      document.getElementById('input-last-place').value = `${name} (${latlng.lat.toFixed(4)}, ${latlng.lng.toFixed(4)})`;
+      document.getElementById('coords-display-3').innerText = 
+        `위도: ${latlng.lat.toFixed(4)}, 경도: ${latlng.lng.toFixed(4)}`;
     }
 
     // 지도 4 초기화
@@ -532,83 +510,57 @@
       
       map4.on('click', function(e) {
         marker4.setLatLng(e.latlng);
-        updateLocation4(e.latlng, "지도 선택 위치");
+        updateLocation4(e.latlng);
       });
 
       marker4.on('dragend', function(e) {
-        updateLocation4(marker4.getLatLng(), "지도 드래그 위치");
+        updateLocation4(marker4.getLatLng());
       });
     }
 
-    function updateLocation4(latlng, name) {
+    function updateLocation4(latlng) {
       formData.usualCoords = latlng;
-      document.getElementById('input-usual-place').value = `${name} (${latlng.lat.toFixed(4)}, ${latlng.lng.toFixed(4)})`;
+      document.getElementById('coords-display-4').innerText = 
+        `위도: ${latlng.lat.toFixed(4)}, 경도: ${latlng.lng.toFixed(4)}`;
     }
 
-    // 🔍 장소 검색 기능 (OpenStreetMap Nominatim API 활용)
-    function searchLocation(step) {
-      const query = document.getElementById(`search-step${step}`).value.trim();
-      if (!query) {
-        alert('검색할 장소명을 입력해 주세요!');
-        return;
-      }
+    // ⌨️ 장소명 입력 시 실시간 위치 자동 이동 및 핀 지정
+    function onPlaceInput(step) {
+      const timer = step === 3 ? searchTimer3 : searchTimer4;
+      clearTimeout(timer);
 
-      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
-        .then(response => response.json())
-        .then(data => {
-          if (data && data.length > 0) {
-            const lat = parseFloat(data[0].lat);
-            const lon = parseFloat(data[0].lon);
-            const displayName = data[0].display_name.split(',')[0];
+      const query = document.getElementById(step === 3 ? 'input-last-place' : 'input-usual-place').value.trim();
+      if (query.length < 2) return;
 
-            if (step === 3) {
-              map3.setView([lat, lon], 16);
-              marker3.setLatLng([lat, lon]);
-              formData.lastCoords = { lat, lng: lon };
-              document.getElementById('input-last-place').value = `${query} (${displayName})`;
-            } else if (step === 4) {
-              map4.setView([lat, lon], 16);
-              marker4.setLatLng([lat, lon]);
-              formData.usualCoords = { lat, lng: lon };
-              document.getElementById('input-usual-place').value = `${query} (${displayName})`;
+      const newTimer = setTimeout(() => {
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.length > 0) {
+              const lat = parseFloat(data[0].lat);
+              const lon = parseFloat(data[0].lon);
+
+              if (step === 3) {
+                map3.setView([lat, lon], 16);
+                marker3.setLatLng([lat, lon]);
+                updateLocation3({ lat, lng: lon });
+              } else if (step === 4) {
+                map4.setView([lat, lon], 16);
+                marker4.setLatLng([lat, lon]);
+                updateLocation4({ lat, lng: lon });
+              }
             }
-          } else {
-            alert('해당 장소를 찾을 수 없습니다. 정확한 건물명이나 주소를 입력해 보세요.');
-          }
-        })
-        .catch(err => {
-          alert('장소 검색 중 오류가 발생했습니다.');
-        });
-    }
+          })
+          .catch(err => console.log('Geocoding error:', err));
+      }, 600); // 사용자가 입력 타이핑을 멈춘 후 0.6초 뒤 자동 검색 실행
 
-    // 📍 현재 위치 가져오기
-    function getCurrentLocation(step) {
-      if (!navigator.geolocation) {
-        alert('사용 중인 브라우저에서 위치 서비스를 지원하지 않습니다.');
-        return;
-      }
-
-      navigator.geolocation.getCurrentPosition((position) => {
-        const lat = position.coords.latitude;
-        const lon = position.coords.longitude;
-
-        if (step === 3) {
-          map3.setView([lat, lon], 16);
-          marker3.setLatLng([lat, lon]);
-          updateLocation3({ lat, lng: lon }, "현재 내 위치");
-        } else if (step === 4) {
-          map4.setView([lat, lon], 16);
-          marker4.setLatLng([lat, lon]);
-          updateLocation4({ lat, lng: lon }, "현재 내 위치");
-        }
-      }, () => {
-        alert('위치 정보를 가져올 수 없습니다. 권한 설정을 확인해 주세요.');
-      });
+      if (step === 3) searchTimer3 = newTimer;
+      else searchTimer4 = newTimer;
     }
 
     function startAnalysis() {
       const usualPlace = document.getElementById('input-usual-place').value.trim();
-      if (!usualPlace) { alert('장소를 입력하거나 지도에서 검색해 주세요!'); return; }
+      if (!usualPlace) { alert('장소를 입력해 주세요!'); return; }
       formData.usualPlace = usualPlace;
 
       showScreen('screen-loading');
@@ -654,7 +606,8 @@
       const mapCard = document.getElementById('result-map-card');
       mapCard.style.display = 'block';
 
-      document.getElementById('result-map-title').innerText = `📍 [${rankIndex}위] ${target.name} 지도 위치`;
+      document.getElementById('result-map-title').innerText = 
+        `📍 [${rankIndex}위] ${target.name} (위도: ${target.coords.lat.toFixed(4)}, 경도: ${target.coords.lng.toFixed(4)})`;
 
       if (!resultMap) {
         resultMap = L.map('map-result').setView([target.coords.lat, target.coords.lng], 16);
